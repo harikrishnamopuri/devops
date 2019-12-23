@@ -43,7 +43,9 @@ output "main_dns_zone" {
 
 output "s3_config_bucket_map" {
   value = {
-    global           = "bixby-config-${var.account}-${var.env}"
+    global           = "sre-config-${var.account}-${var.env}"
+    usw2             = "sre-config-${var.account}-usw2"
+    usw1             = "sre-config-${var.account}-usw1"
   }
 }
 
