@@ -26,7 +26,7 @@ variable "env" {
 
 variable "lb_type" {
    type = string
-   default  = "nlb"
+   default  = "clb"
 }
 variable "max_size" {
   type    = string
