@@ -1,4 +1,4 @@
-module "eks" {
+module "sait-asr" {
   source              = "git@github.com:harikrishnamopuri/tf-modules.git//aws/resources/eks"
   eks_cluster_name    = var.eks_cluster_name
   account             = var.account
