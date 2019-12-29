@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket         = "sre-techy-config-dev-usw2"
+    bucket         = "sre-techy-config-dev-usw2-${var.account_ids[var.account_profile]}"
     key            = "terraform/dev/usw2/eks-apache2/terraform.tfstate"
     region         = "us-west-2"
     profile        = "dev"
@@ -10,7 +10,7 @@ terraform {
 data "terraform_remote_state" "global"  {
   backend = "s3"
   config = {
-    bucket = "sre-techy-dev-global-jyo"
+    bucket = "sre-techy-dev-global-${var.account_ids[var.account_profile]}"
     key    = "terraform/dev/global/global/terraform.tfstate"
     region = "us-west-2"
   }
@@ -18,7 +18,7 @@ data "terraform_remote_state" "global"  {
 data "terraform_remote_state" "usw2"  {
   backend = "s3"
   config = {
-    bucket = "sre-techy-config-dev-usw2"
+    bucket = "sre-techy-config-dev-usw2-${var.account_ids[var.account_profile]}"
     key    = "terraform/dev/us/usw2/terraform.tfstate"
     region = "us-west-2"
   }

@@ -43,9 +43,9 @@ output "main_dns_zone" {
 
 output "s3_config_bucket_map" {
   value = {
-    global           = "sre-config-${var.account}-${var.env}"
-    usw2             = "sre-config-${var.account}-usw2"
-    usw1             = "sre-config-${var.account}-usw1"
+    global           = "sre-config-${var.account}-${var.env}-${var.account_ids[var.account_profile]}"
+    usw2             = "sre-config-${var.account}-usw2-${var.account_ids[var.account_profile]}"
+    usw1             = "sre-config-${var.account}-usw1-${var.account_ids[var.account_profile]}"
   }
 }
 
