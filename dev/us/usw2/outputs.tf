@@ -51,3 +51,8 @@ output "vpc_nat_eips" {
     "partner" = module.partner_usw2_vpc.nat_eips
   }
 }
+
+output "deployer_key_pem" {
+  value = local.deployer_key_pem
+}
+
