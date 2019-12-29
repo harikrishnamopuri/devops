@@ -25,7 +25,7 @@ variable "account_ids" {
   type = map(string)
 
   default = {
-     dev = "589815280396"
+     dev = "985635016868"
   }
 }
 
@@ -49,8 +49,8 @@ locals {
   worker_nodes = list(
     map("name", "apache2",
       "ami_id", "ami-015f9b58b66d20c7b",
-      "instance_type", "t2.micro",
-      "min_size", 1,
+      "instance_type", "c5.xlarge",
+      "min_size", 0,
       "max_size", 2,
       "desired_size", 1,
       "volume_type", "gp2",
@@ -77,6 +77,12 @@ user_access  = [
    arn = "arn:aws:iam::717627950615:user/hari.mopuri@samsung.com"
    group = "system:masters"
  },
+ {
+   name = "DevSpinnakerManagingAccount"
+   arn = "arn:aws:iam::985635016868:user/DevSpinnakerManagingAccount"
+   group = "system:masters"
+ },
+
 
 ]
 }

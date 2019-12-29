@@ -30,7 +30,7 @@ variable "account_ids" {
   type = map(string)
 
   default = {
-     dev = "589815280396"
+     dev = "985635016868"
   }
 }
 

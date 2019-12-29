@@ -1,10 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "sre-techy-dev-global"
+    bucket         = "sre-techy-dev-global-jyo"
     key            = "terraform/dev/global/global/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "us-west-2"
     profile        = "dev"
-    dynamodb_table = "tf-state-lock-global"
   }
 }
 
