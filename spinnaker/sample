@@ -1,0 +1,171 @@
+Content-Type: multipart/mixed; boundary="MIMEBOUNDARY"
+MIME-Version: 1.0
+
+--MIMEBOUNDARY
+Content-Transfer-Encoding: 7bit
+Content-Type: text/cloud-config
+Mime-Version: 1.0
+
+#cloud-config
+system_info:
+  default_user:
+    name: sixfive
+write_files:
+  - path: /etc/viv.account_name
+    content: |
+         dev
+
+--MIMEBOUNDARY
+Content-Transfer-Encoding: 7bit
+Content-Type: text/x-shellscript
+Mime-Version: 1.0
+
+#!/bin/bash
+
+main() {
+  if [ $(id -u) -ne 0 ]; then
+    echo "Must be run as root!" >&2
+    exit 1
+  fi
+
+  sleep=0
+  while true; do
+    sleep $sleep; sleep=30
+    install_packages &&
+    setup_aws_config &&
+    setup_git_ssh    &&
+    run_ansible && break
+  done
+}
+
+install_packages() {
+
+  rm -f /etc/yum.repos.d/*.save 2>/dev/null || true
+
+  pkgs="libffi-devel"
+  pkgs="$pkgs openssl-libs"
+  pkgs="$pkgs gcc"
+  pkgs="$pkgs wget"
+  pkgs="$pkgs git"
+  pkgs="$pkgs python-devel"
+#  pkgs="$pkgs cloud-utils"
+#  pkgs="$pkgs python-pip"
+
+  # Must stay in sync with ansible-pull common role pinned versions!
+  yum install $pkgs -y              &&
+
+  easy_install pip        &&
+  pip install --upgrade pip  &&
+  pip install \
+      ansible==2.5.0 \
+      awscli==1.14.70 \
+      botocore==1.10.4 \
+      credstash==1.13.3 \
+      cryptography==2.0.3
+}
+
+setup_aws_config() {
+echo "## aws_config ##"
+  aws_dir=~root/.aws
+  # support filesystem override of region
+  region_file=/etc/viv/ec2_region
+  if [ -r "${region_file}" ]; then
+    echo Reading from "${region_file}"
+    region=$(cat "${region_file}")
+  fi
+#  [ -z "$region" ] && region=$(ec2metadata --availability-zone | sed 's/.$//')
+  [ -z "$region" ] && region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document | grep availabilityZone | cut -d \" -f 4 | sed 's/.$//')
+  [ -z "$region" ] && return 1
+
+  # Make sure directory structure is as expected
+  [ ! -d $aws_dir ] && mkdir $aws_dir
+  chown root:root $aws_dir
+  chmod 0700 $aws_dir
+
+  # Write out config - credentials should be pulled from IAM profile
+  printf "[default]\noutput = json\nregion = %s\n" $region > $aws_dir/config
+  if [ -f "${aws_dir}/credentials" ]; then
+    iam_role=$(curl --fail http://169.254.169.254/latest/meta-data/iam/security-credentials/)
+    if [ -n "${iam_role}" ]; then
+      echo Deleting "${aws_dir}/credentials"
+      rm -f "${aws_dir}/credentials"
+    fi
+  fi
+
+echo "## End of aws_config ##"
+  return 0
+}
+
+setup_git_ssh() {
+echo "## git_ssh_config ##"
+  rsa_file=~root/.ssh/ansible_pull.id_rsa
+  credstash -t "credstash-$region" get ansible_pull_id_rsa > $rsa_file || return 1
+  chmod 0700 $rsa_file
+  printf "Host github.com\n    IdentityFile %s\n    IdentitiesOnly yes\n" $rsa_file > ~root/.ssh/config
+echo "## End of git_ssh_config ##"
+}
+
+run_ansible() {
+  # support filesystem override of branch and role
+  # We may not have jq, but json_pp comes with perl and should be present
+  tags_file=/etc/viv/ec2_tags.json
+  if [ -r "${tags_file}" ]; then
+    echo Reading from "${tags_file}"
+    branch=$(
+      json_pp < "${tags_file}" \
+        | grep ansible_branch \
+        | awk -F: '{ print $NF }' \
+        | tr -d ' ",')
+    [ $? -ne 0 ] && return 1
+    role=$(
+      json_pp < "${tags_file}" \
+        | grep ansible_role \
+        | awk -F: '{ print $NF }' \
+        | tr -d ' ",')
+    [ $? -ne 0 ] && return 1
+    # role may be empty
+    [ -z "${branch}" ] && branch=master
+
+  else
+#    id=$(ec2metadata --instance-id)
+    id=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document | grep instanceId | cut -d \" -f 4)
+    [ -z "$id" ] && return 1
+
+    query='Reservations[*].Instances[*].[Tags[?Key==`ansible-role`].Value | [0]]'
+    role=$(aws ec2 describe-instances --instance-id $id --query "$query" --out text)
+    [ $? -ne 0 ] && return 1
+    [ "$role" = "None" ] && role=""
+
+    query='Reservations[*].Instances[*].[Tags[?Key==`ansible-branch`].Value | [0]]'
+    branch=`aws ec2 describe-instances --instance-id $id --query "$query" --out text`
+    [ $? -ne 0 ] && return 1
+    [ "$branch" = "None" ] && branch=master
+  fi
+
+  # Ansible breaks if $HOME isn't set and exported
+  export HOME="/root"
+
+  sudo rm -f /etc/viv/ec2_tags_cache.json
+  systemctl stop crond
+  # Actually run ansible-pull
+  cmd="ansible-pull --accept-host-key --full --checkout ${branch} --directory=/opt/ansible-pull"
+  cmd="${cmd} -U git@github.com:six5/bixby-ansible.git -i localhost, -e 'role=$role first_run=true' base_playbook.yml"
+  flock -n /var/lock/ansible-pull -c "$cmd"
+  systemctl enable crond
+  systemctl start crond
+}
+
+main
+# master branch
+# end
+
+
+--MIMEBOUNDARY
+
+
+
+{
+  {
+  "text": "[ ${parameters.UP_CO} Deployment : ${parameters.env} Farm]\n End Time :  ${new java.text.SimpleDateFormat('yyyy-MM-dd  HH:mm:ss Z').format(parameters['ENDTIME'] - 28800000)} PST \n ENV : ${parameters.env} \nModule : BSE \n Target Components: \n-----------------\n *bse_release: ${parameters.bse_release}\n *------------------\n User Impact : None"
+}
+}

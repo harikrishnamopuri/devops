@@ -1,0 +1,9 @@
+TE: Disabled datadog and sumologic for now
+
+- include: playbooks/vars.yml
+- include: playbooks/common.yml
+- include: playbooks/{{ role }}.yml
+  when: role is defined
+- include: playbooks/common_post.yml
+
+

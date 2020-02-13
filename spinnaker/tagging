@@ -1,0 +1,28 @@
+master -> STGHQ	
+git checkout master
+
+git tag -d STGHQ || true
+
+git fetch
+
+git pull
+
+git checkout STGHQ
+
+NOW=$(date -u +%s)
+
+git tag STGHQ-${NOW}
+
+git push origin STGHQ-${NOW}
+
+git checkout master
+
+git pull
+
+git tag -d STGHQ || true
+
+git tag STGHQ
+
+git push origin :refs/tags/STGHQ
+
+git push origin STGHQ

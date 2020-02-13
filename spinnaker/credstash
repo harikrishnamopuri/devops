@@ -1,0 +1,25 @@
+aws:
+
+credstash
+ -t ${CRED_TABLE}
+ -r ${CRED_REGION}
+ get ${CRED_KEY}
+#variables
+${CRED_TABLE}
+${CRED_REGION}
+${CRED_KEY}
+export CRED_TABLE="{{ testserver_cred_table }}"
+export CRED_REGION="{{ testserver_cred_region }}"
+export CRED_KEY="{{ testserver_cred_key }}"
+
+credstash
+ -t ${CRED_TABLE}
+ -r ${CRED_REGION}
+ get ${CRED_KEY}
+#variables
+${CRED_TABLE}
+${CRED_REGION}
+${CRED_KEY}
+export CRED_TABLE="{{ testserver_cred_table }}"
+export CRED_REGION="{{ testserver_cred_region }}"
+export CRED_KEY="{{ testserver_cred_key }}"

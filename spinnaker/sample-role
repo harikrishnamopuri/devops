@@ -1,0 +1,22 @@
+---
+
+- name: Ansible Asr Playbook
+  connection: local
+  hosts: localhost
+  become: root
+
+  tasks:
+   - set_fact: roles="{{ role_names }} + {{ roles }}"
+   - set_fact: logging_enabled=true
+     when: packer is not defined or packer|bool == false
+   - set_fact: stackdriver_monitor=true
+   - set_fact: datadog_enabled=false
+     when: packer is defined or packer|bool == true
+   - set_fact: itms_enabled=true
+     when: itms_install_target
+
+  roles:
+    - test
+    - { role: consul-client, when: first_run is defined and first_run|bool == true }
+    - { role: datadog-agent-for-centos-test, when: ( packer is not defined or packer|bool == false) and ( ec2.tags.ansible_role == "test" ) and ( ansible_distribution == "CentOS" ) }
+
